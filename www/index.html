@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserver Test</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+</head>
+<body>
+    <h1>Webserver Test Page</h1>
+
+    <section>
+        <h2>Test GET</h2>
+        <button onclick="testGet()">Fetch /test.txt</button>
+        <pre id="getResponse"></pre>
+    </section>
+
+    <section>
+        <h2>Test POST</h2>
+        <form id="postForm" action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file">Upload File:</label>
+            <input type="file" id="file" name="file">
+            <button type="submit">Upload</button>
+        </form>
+        <pre id="postResponse"></pre>
+    </section>
+
+    <section>
+        <h2>Test DELETE</h2>
+        <form id="deleteForm" onsubmit="testDelete(event)">
+            <label for="fileToDelete">File to Delete:</label>
+            <input type="text" id="fileToDelete" placeholder="/uploads/example.txt">
+            <button type="submit">Delete</button>
+        </form>
+        <pre id="deleteResponse"></pre>
+    </section>
+
+    <section>
+        <h2>Test File Download</h2>
+        <form id="downloadForm" onsubmit="testDownload(event)">
+            <label for="fileToDownload">File to Download:</label>
+            <input type="text" id="fileToDownload" placeholder="/uploads/example.txt">
+            <button type="submit">Download</button>
+        </form>
+        <pre id="downloadResponse"></pre>
+    </section>
+
+    <script>
+        function testGet() {
+            fetch('/test.txt')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('getResponse').innerText = data;
+                })
+                .catch(error => {
+                    document.getElementById('getResponse').innerText = error;
+                });
+        }
+
+        function testDelete(event) {
+            event.preventDefault();
+            const fileToDelete = document.getElementById('fileToDelete').value;
+
+            fetch(fileToDelete, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('deleteResponse').innerText = data;
+                })
+                .catch(error => {
+                    document.getElementById('deleteResponse').innerText = error;
+                });
+        }
+
+        function testDownload(event) {
+            event.preventDefault();
+            const fileToDownload = document.getElementById('fileToDownload').value;
+
+            fetch(fileToDownload)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = fileToDownload.split('/').pop();
+                    document.body.appendChild(a);
+                    a.click();
+                    URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    document.getElementById('downloadResponse').innerText = error;
+                });
+        }
+    </script>
+</body>
+</html>
